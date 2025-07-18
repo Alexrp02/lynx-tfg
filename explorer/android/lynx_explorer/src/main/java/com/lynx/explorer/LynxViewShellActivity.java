@@ -3,9 +3,11 @@
 // LICENSE file in the root directory of this source tree.
 package com.lynx.explorer;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -18,6 +20,7 @@ import android.view.DisplayCutout;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -56,6 +59,11 @@ public class LynxViewShellActivity extends AppCompatActivity {
   private static final String DEFAULT_TOP_BAR_COLOR = "#F0F2F5";
   private static final String DEFAULT_TOP_BAR_TITLE_COLOR = "#000000";
   private static final String DEFAULT_TOP_BAR_BACK_BUTTON_STYLE = "light";
+  private static final int PERMISSION_REQUEST_CODE = 100;
+  private static final String[] REQUIRED_PERMISSIONS = new String[]{
+    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+    android.Manifest.permission.READ_MEDIA_IMAGES
+  };
   private ViewGroup mLynxContainer;
   private LynxView mLynxView;
   private String mFrontendTheme;
@@ -78,9 +86,46 @@ public class LynxViewShellActivity extends AppCompatActivity {
 
     extraTimingInfo.mContainerInitEnd = System.currentTimeMillis();
 
+    if (!hasAllPermissions()) {
+      requestPermissions(REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
+    } else {
+      openTargetUrl(url);
+    }
     openTargetUrl(url);
   }
 
+  private boolean hasAllPermissions() {
+    for (String permission : REQUIRED_PERMISSIONS) {
+      if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+    if (requestCode == PERMISSION_REQUEST_CODE) {
+      boolean allGranted = true;
+      for (int result : grantResults) {
+        if (result != PackageManager.PERMISSION_GRANTED) {
+          allGranted = false;
+          break;
+        }
+      }
+
+      if (allGranted) {
+        openTargetUrl(getIntent().getStringExtra(URL_KEY));
+      } else {
+        // Optionally notify user
+        Log.w(TAG, "Required permissions not granted");
+        finish(); // or disable functionality
+      }
+    }
+  }
+  
   @Override
   protected void onDestroy() {
     if (mLynxView != null) {
@@ -97,6 +142,15 @@ public class LynxViewShellActivity extends AppCompatActivity {
     }
     return super.onOptionsItemSelected(item);
   }
+  
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus && mLynxView != null) {
+      mLynxView.updateGlobalProps(getGlobalProps(this));
+    }
+  }
+
 
   private String getStorageItem(String key) {
     SharedPreferences p = this.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
@@ -241,7 +295,6 @@ public class LynxViewShellActivity extends AppCompatActivity {
       builder.setDensity(queryMap.getFloat("density", 320) / 160.f);
     }
     LynxView lynxView = builder.build(this);
-    lynxView.updateGlobalProps(getGlobalProps(this));
     extraTimingInfo.mPrepareTemplateStart = System.currentTimeMillis();
 
     renderLynxViewWithUrl(lynxView, url);
@@ -249,6 +302,9 @@ public class LynxViewShellActivity extends AppCompatActivity {
         new FrameLayout.LayoutParams(queryMap.getInt("width", ViewGroup.LayoutParams.MATCH_PARENT),
             queryMap.getInt("height", ViewGroup.LayoutParams.MATCH_PARENT)));
     mLynxView = lynxView;
+    if (hasWindowFocus()) {
+      mLynxView.updateGlobalProps(getGlobalProps(this));
+    }
   }
 
   private void renderLynxViewWithUrl(LynxView lynxView, String url) {
@@ -308,6 +364,17 @@ public class LynxViewShellActivity extends AppCompatActivity {
     } else {
       globalProps.put("frontendTheme", "light");
     }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      WindowInsets insets = getWindow().getDecorView().getRootWindowInsets();
+      if (insets != null) {
+        globalProps.put("safeAreaTop", insets.getSystemWindowInsetTop());
+        globalProps.put("safeAreaBottom", insets.getSystemWindowInsetBottom());
+        globalProps.put("safeAreaLeft", insets.getSystemWindowInsetLeft());
+        globalProps.put("safeAreaRight", insets.getSystemWindowInsetRight());
+      }
+    }
+
 
     return TemplateData.fromMap(globalProps);
   }

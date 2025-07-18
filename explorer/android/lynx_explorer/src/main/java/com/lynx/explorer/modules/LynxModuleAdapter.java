@@ -58,6 +58,7 @@ public class LynxModuleAdapter {
       }
     };
     LynxEnv.inst().registerModule("ExplorerModule", ExplorerModule.class);
+    LynxEnv.inst().registerModule("NativeLocalStorageModule", NativeLocalStorageModule.class);
 
     LynxDevtoolGlobalHelper.getInstance().registerCardListener(mListener);
   }

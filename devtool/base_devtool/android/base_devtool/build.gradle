@@ -13,6 +13,29 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
+  def copyPrebuiltSoFiles = tasks.register("copyPrebuiltSoFiles") {
+      doLast {
+          def abis = rootProject.ext.abiList
+          def flavor = "noasan" // adjust if needed
+          def buildType = "Debug" // adjust if needed
+          abis.each { abi ->
+              def src = file("$buildDir/intermediates/cmake/${flavor}${buildType}/obj/${abi}/libbasedevtool.so")
+              def destDir = file("src/main/jniLibs/${abi}")
+              if (src.exists()) {
+                  destDir.mkdirs()
+                  copy {
+                      from src
+                      into destDir
+                  }
+              }
+          }
+      }
+  }
+
+  if (project.hasProperty('skipNativeBuild')) {
+      preBuild.dependsOn copyPrebuiltSoFiles
+  }
+
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 26
@@ -74,11 +97,13 @@ android {
     }
 
 
+  if (!project.hasProperty('skipNativeBuild')) {
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
         }
     }
+}
 }
 
 task copyResources() {
@@ -102,6 +127,8 @@ dependencies {
 
 // Configure the compilation parameters in gn to generate the corresponding CMakeLists.txt files.
 task configGnCompileParas {
+    onlyIf { !project.hasProperty('skipNativeBuild') }
+
     def buildVariantList = getFlavorNamesAndBuildTypes(project)
     def flavorNames = buildVariantList[0]
     def buildTypes = buildVariantList[1]
