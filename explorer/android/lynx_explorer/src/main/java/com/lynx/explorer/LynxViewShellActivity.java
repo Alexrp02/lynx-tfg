@@ -24,6 +24,8 @@ import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.WindowCompat;
@@ -68,6 +70,7 @@ public class LynxViewShellActivity extends AppCompatActivity {
   private LynxView mLynxView;
   private String mFrontendTheme;
   private TimingHandler.ExtraTimingInfo extraTimingInfo = new TimingHandler.ExtraTimingInfo();
+  private OnBackPressedCallback backButtonCallback;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +95,20 @@ public class LynxViewShellActivity extends AppCompatActivity {
       openTargetUrl(url);
     }
     openTargetUrl(url);
+
+    backButtonCallback = new OnBackPressedCallback(true) {
+      @Override
+      public void handleOnBackPressed() {
+        System.out.println("AQUI mLynxView: " + mLynxView);
+        if (mLynxView != null) {
+          System.out.println("AQUI mLynxView.getContext(): " + mLynxView.getContext());
+          System.out.println("AQUI is LynxContext: " + (mLynxView.getContext() instanceof LynxContext));
+          System.out.println("AQUI Sending backButtonPressed event to LynxContext");
+          mLynxView.sendGlobalEvent("backButtonPressed", null);
+        }
+      }
+    };
+    getOnBackPressedDispatcher().addCallback(this, backButtonCallback);
   }
 
   private boolean hasAllPermissions() {
@@ -125,7 +142,7 @@ public class LynxViewShellActivity extends AppCompatActivity {
       }
     }
   }
-  
+
   @Override
   protected void onDestroy() {
     if (mLynxView != null) {
@@ -142,7 +159,7 @@ public class LynxViewShellActivity extends AppCompatActivity {
     }
     return super.onOptionsItemSelected(item);
   }
-  
+
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);

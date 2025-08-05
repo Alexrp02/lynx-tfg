@@ -38,7 +38,7 @@ public class LynxExplorerInput extends LynxUI<AppCompatEditText> {
     view.setImeOptions(EditorInfo.IME_ACTION_NONE);
     view.setHorizontallyScrolling(true);
     view.setPadding(0, 0, 0, 0);
-    view.setTextSize(14);
+    view.setTextSize(20);
     view.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

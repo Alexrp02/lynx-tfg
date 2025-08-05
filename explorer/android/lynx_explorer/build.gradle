@@ -93,7 +93,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core:1.6.0'
     implementation 'com.facebook.fresco:fresco:2.3.0'
     implementation 'com.facebook.fresco:animated-gif:2.3.0'
@@ -117,7 +117,7 @@ dependencies {
     implementation project(':LynxDevtool')
     implementation project(':LynxXElement')
     implementation project(':LynxXElement:Input')
-    
+    implementation 'androidx.activity:activity-ktx:1.6.1'
     kapt project(':LynxProcessor')
     compileOnly project(':LynxProcessor')
 }
