@@ -99,11 +99,7 @@ public class LynxViewShellActivity extends AppCompatActivity {
     backButtonCallback = new OnBackPressedCallback(true) {
       @Override
       public void handleOnBackPressed() {
-        System.out.println("AQUI mLynxView: " + mLynxView);
         if (mLynxView != null) {
-          System.out.println("AQUI mLynxView.getContext(): " + mLynxView.getContext());
-          System.out.println("AQUI is LynxContext: " + (mLynxView.getContext() instanceof LynxContext));
-          System.out.println("AQUI Sending backButtonPressed event to LynxContext");
           mLynxView.sendGlobalEvent("backButtonPressed", null);
         }
       }
