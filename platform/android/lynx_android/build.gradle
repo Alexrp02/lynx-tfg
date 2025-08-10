@@ -16,7 +16,7 @@ android {
   // Add this near the top of your build.gradle
   def copyPrebuiltSoFiles = tasks.register("copyPrebuiltSoFiles") {
       doLast {
-          def abis = rootProject.ext.abiList
+          def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
           def flavor = "noasan" // or use the correct flavor as needed
           def buildType = "Debug" // or "Release" as needed
           abis.each { abi ->
@@ -26,6 +26,15 @@ android {
                   destDir.mkdirs()
                   copy {
                       from src
+                      into destDir
+                  }
+              }
+              // Also copy liblynx_v8_bridge.so
+              def src2 = file("$buildDir/intermediates/cmake/${flavor}${buildType}/obj/${abi}/liblynx_v8_bridge.so")
+              if (src2.exists()) {
+                  destDir.mkdirs()
+                  copy {
+                      from src2
                       into destDir
                   }
               }

@@ -8,6 +8,46 @@ apply plugin: 'kotlin-kapt'
 
 
 android {
+    // Add copyPrebuiltSoFiles task for LynxExplorer
+    def copyPrebuiltSoFiles = tasks.register("copyPrebuiltSoFiles") {
+        doLast {
+            def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
+            def flavor = "noasan"
+            def buildType = "Debug"
+            
+            abis.each { abi ->
+                def destDir = file("src/main/jniLibs/${abi}")
+                destDir.mkdirs()
+                
+                // Copy from various dependency modules
+                def modulePaths = [
+                    "../../../../lynx/platform/android/lynx_android/build/intermediates/cmake/${flavor}${buildType}/obj/${abi}",
+                    "../../../../lynx/base/trace/android/build/intermediates/cmake/${flavor}${buildType}/obj/${abi}",
+                    "../../../../lynx/devtool/base_devtool/android/base_devtool/build/intermediates/cmake/${flavor}${buildType}/obj/${abi}",
+                    "../../../../lynx/platform/android/lynx_devtool/build/intermediates/cmake/${flavor}${buildType}/obj/${abi}"
+                ]
+                
+                def soFiles = ["liblynx.so", "liblynx_v8_bridge.so", "liblynxtrace.so", "libbasedevtool.so", "liblynxdevtool.so"]
+                
+                modulePaths.each { modulePath ->
+                    soFiles.each { soFile ->
+                        def src = file("${modulePath}/${soFile}")
+                        if (src.exists()) {
+                            copy {
+                                from src
+                                into destDir
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Make preBuild depend on this task if skipNativeBuild is set
+    if (project.hasProperty('skipNativeBuild')) {
+        preBuild.dependsOn copyPrebuiltSoFiles
+    }
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
@@ -49,8 +89,12 @@ android {
         debug {
           if (project.hasProperty('skipNativeBuild') && project.skipNativeBuild == 'true') {
             ndk {
-              // Disable NDK build
-              abiFilters.clear()
+              // Use prebuilt libraries for specified ABI
+              if (project.hasProperty('abiList')) {
+                abiFilters project.abiList.split(',')
+              } else {
+                abiFilters "x86_64"  // default fallback
+              }
             }
           }
         }

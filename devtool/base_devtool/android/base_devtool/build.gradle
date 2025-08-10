@@ -15,7 +15,7 @@ android {
 
   def copyPrebuiltSoFiles = tasks.register("copyPrebuiltSoFiles") {
       doLast {
-          def abis = rootProject.ext.abiList
+          def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
           def flavor = "noasan" // adjust if needed
           def buildType = "Debug" // adjust if needed
           abis.each { abi ->
