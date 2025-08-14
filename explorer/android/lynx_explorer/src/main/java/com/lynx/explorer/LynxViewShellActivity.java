@@ -308,6 +308,7 @@ public class LynxViewShellActivity extends AppCompatActivity {
       builder.setDensity(queryMap.getFloat("density", 320) / 160.f);
     }
     LynxView lynxView = builder.build(this);
+    lynxView.updateGlobalProps(getGlobalProps(this));
     extraTimingInfo.mPrepareTemplateStart = System.currentTimeMillis();
 
     renderLynxViewWithUrl(lynxView, url);
@@ -315,9 +316,6 @@ public class LynxViewShellActivity extends AppCompatActivity {
         new FrameLayout.LayoutParams(queryMap.getInt("width", ViewGroup.LayoutParams.MATCH_PARENT),
             queryMap.getInt("height", ViewGroup.LayoutParams.MATCH_PARENT)));
     mLynxView = lynxView;
-    if (hasWindowFocus()) {
-      mLynxView.updateGlobalProps(getGlobalProps(this));
-    }
   }
 
   private void renderLynxViewWithUrl(LynxView lynxView, String url) {
@@ -381,10 +379,12 @@ public class LynxViewShellActivity extends AppCompatActivity {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       WindowInsets insets = getWindow().getDecorView().getRootWindowInsets();
       if (insets != null) {
-        globalProps.put("safeAreaTop", insets.getSystemWindowInsetTop());
-        globalProps.put("safeAreaBottom", insets.getSystemWindowInsetBottom());
-        globalProps.put("safeAreaLeft", insets.getSystemWindowInsetLeft());
-        globalProps.put("safeAreaRight", insets.getSystemWindowInsetRight());
+        float density = context.getResources().getDisplayMetrics().density;
+
+        globalProps.put("safeAreaTop", insets.getSystemWindowInsetTop() / density);
+        globalProps.put("safeAreaBottom", insets.getSystemWindowInsetBottom() / density);
+        globalProps.put("safeAreaLeft", insets.getSystemWindowInsetLeft() / density);
+        globalProps.put("safeAreaRight", insets.getSystemWindowInsetRight() / density);
       }
     }
 

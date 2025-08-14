@@ -4,10 +4,10 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.core.content.edit
 import com.lynx.jsbridge.LynxMethod
 import com.lynx.jsbridge.LynxModule
 import com.lynx.tasm.behavior.LynxContext
-import androidx.core.content.edit
 
 class NativeLocalStorageModule(context: Context) : LynxModule(context) {
   private val PREF_NAME = "MyLocalStorage"
@@ -20,9 +20,7 @@ class NativeLocalStorageModule(context: Context) : LynxModule(context) {
   @LynxMethod
   fun setStorageItem(key: String, value: String) {
     val sharedPreferences = getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    sharedPreferences.edit {
-      putString(key, value)
-    }
+    sharedPreferences.edit { putString(key, value) }
   }
 
   @LynxMethod
@@ -34,9 +32,7 @@ class NativeLocalStorageModule(context: Context) : LynxModule(context) {
   @LynxMethod
   fun clearStorage() {
     val sharedPreferences = getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    sharedPreferences.edit {
-      clear()
-    }
+    sharedPreferences.edit { clear() }
   }
 
   @LynxMethod
@@ -66,10 +62,36 @@ class NativeLocalStorageModule(context: Context) : LynxModule(context) {
 
     return com.lynx.react.bridge.JavaOnlyArray.from(images)
   }
-  
+
   @LynxMethod
   fun endActivity() {
     val lynxContext = mContext as LynxContext
-    lynxContext.activity?.finish();
+    lynxContext.activity?.finish()
+  }
+
+  @LynxMethod
+  fun getImageAsUint8Array(url: String): com.lynx.react.bridge.WritableMap? {
+    val context = getContext()
+    val contentResolver = context.contentResolver
+    return try {
+      val uri = Uri.parse(url)
+      val inputStream = contentResolver.openInputStream(uri)
+      val bytes = inputStream?.readBytes()
+      inputStream?.close()
+      if (bytes != null) {
+        val byteArray = com.lynx.react.bridge.JavaOnlyArray()
+        for (b in bytes) {
+          // Convert signed byte to unsigned int
+          byteArray.pushInt(b.toInt() and 0xFF)
+        }
+        val map = com.lynx.react.bridge.JavaOnlyMap()
+        map.putArray("data", byteArray)
+        map
+      } else {
+        null
+      }
+    } catch (e: Exception) {
+      null
+    }
   }
 }
