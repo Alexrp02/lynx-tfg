@@ -103,7 +103,7 @@ android {
             path "CMakeLists.txt"
         }
     }
-}
+  }
 }
 
 task copyResources() {

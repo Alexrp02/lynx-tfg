@@ -80,7 +80,8 @@ android {
                             '-Wl,-llog',
                             '-Wno-unused-command-line-argument'
                     arguments '-DANDROID_ARM_MODE=arm', '-DFLAVOR_NAME=asan'
-                    abiFilters(*rootProject.ext.abiList)
+                    def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
+                    abiFilters(*abis)
                 }
             }
         }
@@ -111,7 +112,8 @@ android {
                 }
             }
             ndk {
-                abiFilters(*rootProject.ext.abiList)
+                def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
+                abiFilters(*abis)
             }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -134,7 +136,8 @@ android {
                 }
             }
             ndk {
-                abiFilters(*rootProject.ext.abiList)
+                def abis = project.hasProperty('abiList') ? project.abiList.split(',') : rootProject.ext.abiList
+                abiFilters(*abis)
             }
             debuggable true
         }

@@ -40,6 +40,25 @@ android {
                         }
                     }
                 }
+                
+                // Fallback: copy from jniLibs directories if cmake output doesn't exist
+                def fallbackPaths = [
+                    "../../../../lynx/platform/android/lynx_android/src/main/jniLibs/${abi}",
+                    "../../../../lynx/base/trace/android/src/main/jniLibs/${abi}",
+                    "../../../../lynx/devtool/base_devtool/android/base_devtool/src/main/jniLibs/${abi}",
+                    "../../../../lynx/platform/android/lynx_devtool/src/main/jniLibs/${abi}"
+                ]
+                
+                fallbackPaths.each { fallbackPath ->
+                    def srcDir = file(fallbackPath)
+                    if (srcDir.exists()) {
+                        copy {
+                            from srcDir
+                            into destDir
+                            include "*.so"
+                        }
+                    }
+                }
             }
         }
     }
@@ -67,9 +86,9 @@ android {
             pickFirst 'lib/*/libc++_shared.so'
             pickFirst 'lib/*/liblynx.so'
             pickFirst 'lib/*/liblynxtrace.so'
-            pickFirst 'lib/*/libbasedevtool.so'
-            pickFirst 'lib/*/liblynxdevtool.so'
-            pickFirst 'lib/*/liblynx_v8_bridge.so'
+            // pickFirst 'lib/*/libbasedevtool.so'
+            // pickFirst 'lib/*/liblynxdevtool.so'
+            // pickFirst 'lib/*/liblynx_v8_bridge.so'
             pickFirst '**/libnapi.so'
         }
     }
