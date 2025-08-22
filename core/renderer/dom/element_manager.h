@@ -1048,6 +1048,16 @@ class ElementManager : public ElementContextDelegate {
 
   inline void IncreaseElementCount() { element_count_++; }
 
+  inline void IncreaseWrapperElementCount() { wrapper_element_count_++; }
+
+  inline void IncreaseViewElementCount() { view_element_count_++; }
+
+  inline void IncreaseTextElementCount() { text_element_count_++; }
+
+  inline void IncreaseImageElementCount() { image_element_count_++; }
+
+  inline void IncreaseComponentElementCount() { component_element_count_++; }
+
   inline void IncreaseLayoutOnlyElementCount() { layout_only_element_count_++; }
 
   inline void IncreaseLayoutOnlyTransitionCount() {
@@ -1101,6 +1111,10 @@ class ElementManager : public ElementContextDelegate {
 
   bool FixNegativeZIndexBug() { return fix_negative_z_index_bug_; }
 
+  bool FixUpdateDynamicStyleIncorrectOverride() {
+    return fix_update_dynamic_style_incorrect_behavior_;
+  }
+
   bool CSSFragmentParsingOnTASMWorkerMTSRender();
 
   inline void SetCSSFragmentParsingOnTASMWorkerMTSRender(bool enable) {
@@ -1141,6 +1155,7 @@ class ElementManager : public ElementContextDelegate {
       base::MoveOnlyClosure<void, bool> patch_finish_callback,
       FiberElement *root = nullptr);
   void WillDestroy();
+  void ReportElementStatistic();
   ElementManager(const ElementManager &) = delete;
   ElementManager &operator=(const ElementManager &) = delete;
   void OnListComponentUpdated(const std::shared_ptr<PipelineOptions> &options);
@@ -1160,6 +1175,11 @@ class ElementManager : public ElementContextDelegate {
   std::atomic_int element_count_{0};
   std::atomic_int layout_only_element_count_{0};
   std::atomic_int layout_only_transition_count_{0};
+  std::atomic_int wrapper_element_count_{0};
+  std::atomic_int view_element_count_{0};
+  std::atomic_int text_element_count_{0};
+  std::atomic_int image_element_count_{0};
+  std::atomic_int component_element_count_{0};
 
   bool devtool_flag_{false};
 
@@ -1207,6 +1227,7 @@ class ElementManager : public ElementContextDelegate {
   bool fix_insert_before_fixed_bug_{true};
   bool fix_font_size_override_direction_change_bug_{true};
   bool fix_negative_z_index_bug_{true};
+  bool fix_update_dynamic_style_incorrect_behavior_{false};
   bool css_fragment_parsing_tasm_worker_thread_{false};
 
   LynxEnvConfig lynx_env_config_;

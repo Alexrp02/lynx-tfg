@@ -416,7 +416,7 @@ void GridLayoutManager::LayoutInvalidItemHolder(int first_invalid_index) {
 }
 
 bool GridLayoutManager::ShouldRecycleItemHolder(ItemHolder* item_holder) {
-  if (!item_holder) {
+  if (!item_holder || !item_holder->recyclable()) {
     return false;
   }
   return LargestMainSizeInRowWithItemHolder(item_holder) < content_offset_ ||
@@ -447,9 +447,10 @@ float GridLayoutManager::GetTargetContentSize() {
     return 0.f;
   }
   int last_element_index = list_container_->list_adapter()->GetDataCount() - 1;
-  return LargestMainSizeInRowWithItemHolder(
-             list_container_->GetItemHolderForIndex(last_element_index)) +
-         list_orientation_helper_->GetEndPadding();
+  return list_container_->RoundValueToPixelGrid(
+      LargestMainSizeInRowWithItemHolder(
+          list_container_->GetItemHolderForIndex(last_element_index)) +
+      list_orientation_helper_->GetEndPadding());
 }
 
 float GridLayoutManager::LargestMainSizeInRowWithItemHolder(

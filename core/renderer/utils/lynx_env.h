@@ -42,6 +42,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
     ENABLE_ASYNC_JSB_TIMING,
     ENABLE_LONG_TASK_TIMING,
     ENABLE_MEMORY_MONITOR,
+    TIMING_MAP_EXCEEDED_SIZE,
     MEMORY_CHANGE_THRESHOLD_MB,
     DEVTOOL_CONNECTED,
     ENABLE_QUICKJS_DEBUG,
@@ -68,7 +69,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
     VSYNC_TRIGGERED_FROM_UI_THREAD_ANDROID,
     CLIP_RADIUS_FLATTEN,
     ENABLE_UI_OP_BATCH,
-    ENABLE_LAYOUT_ONLY_STATISTIC,
+    ENABLE_ELEMENT_STATISTIC,
     VSYNC_POST_TASK_BY_EMERGENCY,
     ENABLE_USE_MAP_BUFFER_FOR_UI_PROPS,
     DISABLE_ONCE_DYNAMIC_CSS,
@@ -99,6 +100,8 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
     FIX_PARALLEL_Z_INDEX_CRASH,
     FIX_INSERT_BEFORE_FIXED_BUG,
     FIX_FONT_SIZE_OVERRIDE_DIRECTION_CHANGE_BUG,
+    // A special env to correct override behavior for 3.3, preventing break
+    FIX_UPDATE_DYNAMIC_STYLE_INCORRECT_OVERRIDE_3_3,
     // FIXME(linxs): remove this config in the next version
     FIX_NEGATIVE_Z_INDEX_INSERT_BUG,
     // Please add new enum values above
@@ -132,6 +135,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
             {Key::ENABLE_ASYNC_JSB_TIMING, "enable_async_jsb_timing"},
             {Key::ENABLE_LONG_TASK_TIMING, "enable_long_task_timing"},
             {Key::ENABLE_MEMORY_MONITOR, "enable_memory_monitor"},
+            {Key::TIMING_MAP_EXCEEDED_SIZE, "timing_map_exceeded_size"},
             {Key::MEMORY_CHANGE_THRESHOLD_MB, "memory_change_threshold_mb"},
             {Key::DEVTOOL_CONNECTED, "devtool_connected"},
             {Key::STORAGE_DIR, "storage_dir"},
@@ -165,7 +169,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
              "global_quick_context_pool_size"},
             {Key::CLIP_RADIUS_FLATTEN, "clip_radius_flatten"},
             {Key::ENABLE_UI_OP_BATCH, "enable_ui_op_batch"},
-            {Key::ENABLE_LAYOUT_ONLY_STATISTIC, "enable_layout_only_statistic"},
+            {Key::ENABLE_ELEMENT_STATISTIC, "enable_element_statistic"},
             {Key::VSYNC_TRIGGERED_FROM_UI_THREAD_ANDROID,
              "lynx_vsync_triggered_from_ui_thread_android"},
             {Key::VSYNC_POST_TASK_BY_EMERGENCY,
@@ -211,6 +215,8 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
             {Key::FIX_FONT_SIZE_OVERRIDE_DIRECTION_CHANGE_BUG,
              "fix_font_size_override_direction_change_bug"},
             {Key::FIX_NEGATIVE_Z_INDEX_INSERT_BUG, "fix_negative_z_index_bug"},
+            {Key::FIX_UPDATE_DYNAMIC_STYLE_INCORRECT_OVERRIDE_3_3,
+             "fix_update_dynamic_style_incorrect_override_3_3"},
         });
     auto it = (*env_key_to_string_map).find(key);
     DCHECK(it != (*env_key_to_string_map).end());
@@ -297,6 +303,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
   bool EnableAsyncJSBTiming();
   bool EnableLongTaskTiming();
   bool EnableMemoryMonitor();
+  uint32_t TimingMapExceededSize();
   uint32_t GetMemoryChangeThresholdMb();
   int64_t GetV8HeapSize();
   std::unordered_set<std::string> GetActivatedCDPDomains();
@@ -327,6 +334,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
   bool FixParallelZIndexCrash();
   bool FixInsertBeforeFixedBug();
   bool FixFontSizeOverrideDirectionChangeBug();
+  bool FixUpdateDynamicStyleIncorrectOverride();
 
   LynxEnv(const LynxEnv&) = delete;
   LynxEnv& operator=(const LynxEnv&) = delete;

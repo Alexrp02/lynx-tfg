@@ -5,6 +5,7 @@
 #import <Lynx/LynxBackgroundRuntime.h>
 #import <Lynx/LynxDevtool+Internal.h>
 #import <Lynx/LynxEnv.h>
+#import <Lynx/LynxHttpStreamingDelegate.h>
 #import <Lynx/LynxLog.h>
 #import <Lynx/LynxProviderRegistry.h>
 #import <Lynx/LynxService.h>
@@ -213,7 +214,9 @@ typedef NS_ENUM(NSInteger, LynxBackgroundRuntimeState) {
     _weak_module_manager = module_manager;
     auto module_factory = std::make_unique<lynx::piper::ModuleFactoryDarwin>();
 
-    module_factory->registerModule(LynxFetchModule.class);
+    LynxFetchModuleEventSender* eventSender = [[LynxFetchModuleEventSender alloc] init];
+    eventSender.eventSender = self;
+    module_factory->registerModule(LynxFetchModule.class, eventSender);
     module_factory->addWrappers([options moduleWrappers]);
     LynxConfig* globalConfig = [LynxEnv sharedInstance].config;
     if (globalConfig) {
@@ -454,9 +457,24 @@ typedef NS_ENUM(NSInteger, LynxBackgroundRuntimeState) {
   }
   for (id<LynxBackgroundRuntimeLifecycle> client in currTable) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [client runtime:self didRecieveError:error];
+      if ([client respondsToSelector:@selector(runtime:didRecieveError:)]) {
+        [client runtime:self didRecieveError:error];
+      }
     });
   }
 }
 
+- (void)onEvaluateJavaScriptEnd:(NSString*)url {
+  NSHashTable<id<LynxBackgroundRuntimeLifecycle>>* currTable;
+  @synchronized(_innerLifecycleClients) {
+    currTable = [_innerLifecycleClients copy];
+  }
+  for (id<LynxBackgroundRuntimeLifecycle> client in currTable) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if ([client respondsToSelector:@selector(runtime:didEvaluateJavaScriptEnd:)]) {
+        [client runtime:self didEvaluateJavaScriptEnd:url];
+      }
+    });
+  }
+}
 @end

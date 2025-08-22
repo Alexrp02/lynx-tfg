@@ -258,6 +258,10 @@ bool LynxEnv::EnableMemoryMonitor() {
   return GetBoolEnv(Key::ENABLE_MEMORY_MONITOR, false);
 }
 
+uint32_t LynxEnv::TimingMapExceededSize() {
+  return static_cast<uint32_t>(GetLongEnv(Key::TIMING_MAP_EXCEEDED_SIZE, 1000));
+}
+
 uint32_t LynxEnv::GetMemoryChangeThresholdMb() {
   return static_cast<uint32_t>(GetLongEnv(Key::MEMORY_CHANGE_THRESHOLD_MB, 1));
 }
@@ -428,6 +432,11 @@ bool LynxEnv::EnableUnifiedPixelPipeline() {
 
 bool LynxEnv::FixFontSizeOverrideDirectionChangeBug() {
   return GetBoolEnv(Key::FIX_FONT_SIZE_OVERRIDE_DIRECTION_CHANGE_BUG, true);
+}
+
+bool LynxEnv::FixUpdateDynamicStyleIncorrectOverride() {
+  return GetBoolEnv(Key::FIX_UPDATE_DYNAMIC_STYLE_INCORRECT_OVERRIDE_3_3,
+                    false);
 }
 
 }  // namespace tasm
