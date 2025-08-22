@@ -27,7 +27,7 @@ android {
                     "../../../../lynx/platform/android/lynx_devtool/build/intermediates/cmake/${flavor}${buildType}/obj/${abi}"
                 ]
                 
-                def soFiles = ["liblynx.so", "liblynx_v8_bridge.so", "liblynxtrace.so", "libbasedevtool.so", "liblynxdevtool.so"]
+                def soFiles = ["liblynx.so", "liblynx_v8_bridge.so", "liblynxtrace.so", "liblynxdevtool.so"]
                 
                 modulePaths.each { modulePath ->
                     soFiles.each { soFile ->
@@ -67,6 +67,9 @@ android {
             pickFirst 'lib/*/libc++_shared.so'
             pickFirst 'lib/*/liblynx.so'
             pickFirst 'lib/*/liblynxtrace.so'
+            pickFirst 'lib/*/libbasedevtool.so'
+            pickFirst 'lib/*/liblynxdevtool.so'
+            pickFirst 'lib/*/liblynx_v8_bridge.so'
             pickFirst '**/libnapi.so'
         }
     }
