@@ -11,6 +11,7 @@ import com.lynx.jsbridge.LynxMethod
 import com.lynx.jsbridge.LynxModule
 import com.lynx.tasm.behavior.LynxContext
 import android.database.Cursor
+import android.os.Bundle
 
 class NativeLocalStorageModule(context: Context) : LynxModule(context) {
   private val PREF_NAME = "MyLocalStorage"
@@ -70,32 +71,64 @@ class NativeLocalStorageModule(context: Context) : LynxModule(context) {
   }
 
   @LynxMethod
-  fun getImages(): com.lynx.react.bridge.WritableArray {
+  fun getImages(limit: Int, offset: Int): com.lynx.react.bridge.WritableArray {
     val contentResolver: ContentResolver = getContext().contentResolver
-    val images = mutableListOf<String>()
-    val projection = arrayOf(MediaStore.Images.Media._ID)
-    val cursor =
-            contentResolver.query(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    "${MediaStore.Images.Media.DATE_ADDED} DESC" // sort by recent
-            )
+    val images = mutableListOf<Map<String, Any>>()
+    val projection = arrayOf(
+      MediaStore.Images.Media._ID,
+      MediaStore.Images.Media.DISPLAY_NAME,
+      MediaStore.Images.Media.SIZE
+    )
+
+    // Use query arguments instead of raw LIMIT/OFFSET
+    val queryArgs = Bundle().apply {
+      putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+      putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+      putStringArray(
+        ContentResolver.QUERY_ARG_SORT_COLUMNS,
+        arrayOf(MediaStore.Images.Media.DATE_ADDED)
+      )
+      putInt(
+        ContentResolver.QUERY_ARG_SORT_DIRECTION,
+        ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+      )
+    }
+
+    val cursor = contentResolver.query(
+      MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+      projection,
+      queryArgs,
+      null
+    )
 
     cursor?.use {
       val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-      while (it.moveToNext()) {
-        val id = it.getLong(idColumn)
-        val contentUri =
-                Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
-                        .toString()
-        images.add(contentUri)
-      }
+      val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+      val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+        while (it.moveToNext()) {
+          val id = it.getLong(idColumn)
+          val displayName = it.getString(nameColumn)
+          val size = it.getLong(sizeColumn)
+          val extension = displayName.substringAfterLast('.', "")
+          val nameWithId = if (extension.isNotEmpty()) "$id.$extension" else id.toString()
+          val contentUri =
+            Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
+              .toString()
+          images.add(mapOf("name" to nameWithId, "contentUri" to contentUri, "size" to size))
+        }
     }
 
-    return com.lynx.react.bridge.JavaOnlyArray.from(images)
+    val resultArray = com.lynx.react.bridge.JavaOnlyArray()
+    for (image in images) {
+      val map = com.lynx.react.bridge.JavaOnlyMap()
+      map.putString("name", image["name"] as String)
+      map.putString("contentUri", image["contentUri"] as String)
+      map.putDouble("size", (image["size"] as Long).toDouble())
+      resultArray.pushMap(map)
+    }
+    return resultArray
   }
+
 
   @LynxMethod
   fun endActivity() {
