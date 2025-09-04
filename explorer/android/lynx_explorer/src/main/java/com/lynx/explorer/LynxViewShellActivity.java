@@ -31,6 +31,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.lynx.explorer.input.LynxExplorerInput;
+import com.lynx.explorer.video.LynxExplorerVideo;
 import com.lynx.explorer.modules.LynxSettingManager;
 import com.lynx.explorer.provider.DemoGenericResourceFetcher;
 import com.lynx.explorer.provider.DemoMediaResourceFetcher;
@@ -284,6 +285,12 @@ public class LynxViewShellActivity extends AppCompatActivity {
       @Override
       public LynxExplorerInput createUI(LynxContext context) {
         return new LynxExplorerInput(context);
+      }
+    });
+    builder.addBehavior(new Behavior("video", false) {
+      @Override
+      public LynxExplorerVideo createUI(LynxContext context) {
+        return new LynxExplorerVideo(context);
       }
     });
     builder.setEnableGenericResourceFetcher(LynxBooleanOption.TRUE);
